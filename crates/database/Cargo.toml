@@ -5,14 +5,7 @@ edition = "2024"
 
 [dependencies]
 config = { path = "../config" }
-sqlx = { version = "0.7", features = [
-    "runtime-tokio-rustls",
-    "sqlite",               # Enable SQLite support
-    "postgres",             # Optional: Enable PostgreSQL support
-    "chrono",
-    "uuid",
-    "json",
-] }
+diesel = { version = "2.0", features = ["sqlite", "r2d2"] }
 dotenv = "0.15"
 
 [lib]

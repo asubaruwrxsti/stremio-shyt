@@ -1,6 +1,8 @@
 use dotenv::dotenv;
 use dotenv::from_path;
 use std::env;
+use std::fs;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct Config {
@@ -17,12 +19,40 @@ impl Config {
         if let Some(path) = env_path {
             from_path(path).expect(&format!("Failed to load .env file from path: {}", path));
         } else {
-            dotenv().ok(); // Default to `.env` in the root directory
+            // Default to `.env` in the root directory
+            dotenv().ok();
         }
 
-        // Load environment variables into the configuration struct
+        // If `DATABASE_DNS` is empty, fall back to SQLite
+        let database_dns = env::var("DATABASE_DNS").unwrap_or_else(|_| "".to_string());
+
+        let database_dns = if database_dns.is_empty() {
+            // Compute a relative path to the `database` crate
+            let mut path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            path.pop(); // Move up one level to the `crates` directory
+            path.push("database"); // Navigate to the `database` crate directory
+            path.push("stremio.db"); // Append the database file name
+
+            // Check if the file exists
+            if !path.exists() {
+                println!(
+                    "Database file does not exist. Creating it at: {}",
+                    path.display()
+                );
+                fs::File::create(&path).expect("Failed to create the database file");
+            } else {
+                println!("Database file already exists at: {}", path.display());
+            }
+
+            // Return the SQLite connection string
+            format!("sqlite://{}", path.to_string_lossy())
+        } else {
+            // Use the provided `DATABASE_DNS`
+            database_dns
+        };
+
         Self {
-            database_dns: env::var("DATABASE_DNS").expect("DATABASE_DNS must be set"),
+            database_dns,
             api_base_url: env::var("API_BASE_URL")
                 .unwrap_or_else(|_| "http://127.0.0.1:3000".to_string()),
             content_api_url: env::var("CONTENT_API_URL")

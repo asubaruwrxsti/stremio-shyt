@@ -1,11 +1,28 @@
-use config::Config;
-use sqlx::SqlitePool;
+use diesel::prelude::*;
+use diesel::r2d2::{self, ConnectionManager};
 
-/// Initialize the SQLite database connection pool
-pub async fn init_db() -> SqlitePool {
-    let config = Config::from_env(None);
+pub mod schema;
+pub mod interfaces;
+pub mod repositories;
 
-    SqlitePool::connect(&config.database_dns)
-        .await
-        .expect("Failed to connect to the SQLite database")
+// Define type alias for SQLite connection pool
+pub type SqlitePool = r2d2::Pool<ConnectionManager<SqliteConnection>>;
+
+pub struct Database {
+    pool: SqlitePool,
+}
+
+impl Database {
+    /// Create a new SQLite database instance
+    pub fn new(database_path: &str) -> Self {
+        let manager = ConnectionManager::<SqliteConnection>::new(database_path);
+        let pool = r2d2::Pool::builder()
+            .build(manager)
+            .expect("Failed to create SQLite connection pool");
+        Database { pool }
+    }
+
+    pub fn get_pool(&self) -> &SqlitePool {
+        &self.pool
+    }
 }
