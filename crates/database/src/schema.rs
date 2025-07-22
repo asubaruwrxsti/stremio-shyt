@@ -7,3 +7,12 @@ diesel::table! {
         email -> Text,
     }
 }
+
+diesel::table! {
+    content (id) {
+        id -> Integer,
+        title -> Text,
+        description -> Text,
+        author_id -> Integer,
+    }
+}
