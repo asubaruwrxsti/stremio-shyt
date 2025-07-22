@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 
-use crate::interfaces::{User, UserRepository, NewUser};
+use crate::interfaces::{NewUser, User, UserRepository};
 use crate::schema::users;
 
 pub struct UserRepositoryImpl {
@@ -26,7 +26,7 @@ impl UserRepository for UserRepositoryImpl {
     fn create(&self, username: &str, email: &str) -> Result<User, diesel::result::Error> {
         let mut conn = self.pool.get().expect("Failed to get SQLite connection");
         let new_user = NewUser { username, email };
-        
+
         // SQLite doesn't support RETURNING, so we insert and then fetch
         diesel::insert_into(users::table)
             .values(&new_user)
@@ -41,11 +41,11 @@ impl UserRepository for UserRepositoryImpl {
 
     fn update(&self, user: &User) -> Result<User, diesel::result::Error> {
         let mut conn = self.pool.get().expect("Failed to get SQLite connection");
-        
+
         diesel::update(users::table.filter(users::id.eq(user.id)))
             .set((
                 users::username.eq(&user.username),
-                users::email.eq(&user.email)
+                users::email.eq(&user.email),
             ))
             .execute(&mut conn)?;
 
@@ -55,8 +55,7 @@ impl UserRepository for UserRepositoryImpl {
 
     fn delete(&self, user_id: i32) -> Result<(), diesel::result::Error> {
         let mut conn = self.pool.get().expect("Failed to get SQLite connection");
-        diesel::delete(users::table.filter(users::id.eq(user_id)))
-            .execute(&mut conn)?;
+        diesel::delete(users::table.filter(users::id.eq(user_id))).execute(&mut conn)?;
         Ok(())
     }
 }
