@@ -1,0 +1,30 @@
+# Ignore unnecessary files during Docker build
+target/
+*.db
+*.sqlite
+.git/
+.gitignore
+README.md
+.vscode/
+.idea/
+*.log
+data/
+big-bunny-sample-video.torrent
+real_torrent_test.rs
+
+# Node modules if any
+node_modules/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+*.swp
+*.swo
+*~

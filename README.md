@@ -1,1 +1,1 @@
-# stremio-shyt
+# Stremio BitTorrent API

@@ -1,4 +1,8 @@
 target/
 Cargo.lock
 .env
+# Database files
 stremio.db
+stremio_api.db
+big_bunny_test.db
+*.db

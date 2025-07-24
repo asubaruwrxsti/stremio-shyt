@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  stremio-bittorrent-api:
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: stremio-bittorrent-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../data:/app/data
+      - ../migrations:/app/migrations
+    environment:
+      - RUST_LOG=info
+      - DATABASE_PATH=/app/data/stremio.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - stremio-network
+
+networks:
+  stremio-network:
+    driver: bridge
+
+volumes:
+  stremio-data:
+    driver: local

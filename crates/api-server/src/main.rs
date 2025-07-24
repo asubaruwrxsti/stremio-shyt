@@ -89,8 +89,12 @@ async fn main() -> anyhow::Result<()> {
 
     info!("🚀 Starting Stremio BitTorrent API Server");
 
+    // Get database path from environment or use default
+    let database_path = std::env::var("DATABASE_PATH").unwrap_or_else(|_| "stremio.db".to_string());
+    info!("💾 Using database: {}", database_path);
+
     // Initialize the torrent application
-    let torrent_app = Arc::new(TorrentApp::new("stremio_api.db"));
+    let torrent_app = Arc::new(TorrentApp::new(&database_path));
     let app_state = AppState { torrent_app };
 
     // Build our application with routes
