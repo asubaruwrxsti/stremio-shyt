@@ -8,10 +8,17 @@ pub struct TorrentApp {
     pub download_service: DownloadService,
     pub tracker_service: TrackerService,
     pub peer_service: PeerService,
+    pub streaming_service: StreamingServiceImpl,
 }
 
 impl TorrentApp {
+    /// Creates a new TorrentApp with default configuration
     pub fn new(database_path: &str) -> Self {
+        Self::new_with_config(database_path, "downloads", 64)
+    }
+
+    /// Creates a new TorrentApp with custom configuration parameters
+    pub fn new_with_config(database_path: &str, download_dir: &str, buffer_size_mb: usize) -> Self {
         // Infrastructure layer - database setup
         let database = Database::new(database_path);
         let pool = database.get_pool().clone();
@@ -42,13 +49,45 @@ impl TorrentApp {
             torrent_repository.clone(),
         );
 
-        let peer_service = PeerService::new(peer_repository, torrent_repository.clone());
+        let peer_service = PeerService::new(peer_repository.clone(), torrent_repository.clone());
+        
+        // Create piece manager
+        let piece_manager = Arc::new(PieceManager::new(
+            piece_repository.clone(),
+            torrent_repository.clone(),
+            download_dir.to_string(),
+        ));
+
+        // Create piece downloader for production downloading
+        let piece_downloader = Arc::new(PieceDownloader::new(
+            piece_repository.clone(),
+            peer_repository.clone(),
+            torrent_repository.clone(),
+            piece_manager.clone(),
+            download_dir.to_string(),
+        ));
+
+        // Create streaming buffer for production streaming
+        let streaming_buffer = Arc::new(StreamingBuffer::new(
+            piece_manager.clone(),
+            piece_downloader.clone(),
+            torrent_repository.clone(),
+            buffer_size_mb,
+        ));
+        
+        let streaming_service = StreamingServiceImpl::new(
+            torrent_repository.clone(),
+            piece_manager,
+            streaming_buffer,
+            download_dir.to_string(),
+        );
 
         Self {
             torrent_service,
             download_service,
             tracker_service,
             peer_service,
+            streaming_service,
         }
     }
 
@@ -104,8 +143,8 @@ impl TorrentApp {
         // Step 7: Verify SHA1 hash of each piece (handled in complete_piece)
         // Step 8: Write to local file or stream buffer (handled in complete_piece)
 
-        // Step 9: Launch mpv or expose via HTTP
-        let stream_url = self
+        // Step 9: Prepare for streaming and check readiness
+        let is_ready = self
             .download_service
             .prepare_for_streaming(torrent_id)
             .await?;
@@ -113,7 +152,14 @@ impl TorrentApp {
         // Start the torrent download process
         self.torrent_service.start_download(torrent_id).await?;
 
-        Ok(stream_url)
+        // Return info about streaming readiness
+        let status_message = if is_ready {
+            format!("Torrent ready for streaming. Use API endpoints: /api/torrents/{}/files and /api/torrents/{}/stream/{{file_index}}", torrent_id, torrent_id)
+        } else {
+            format!("Torrent download started. Check /api/torrents/{} for progress.", torrent_id)
+        };
+
+        Ok(status_message)
     }
 
     /// Handle piece completion - verifies hash and writes data

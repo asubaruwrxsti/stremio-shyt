@@ -129,8 +129,9 @@ impl PeerService {
 
         println!("✅ Successfully completed BitTorrent handshake with {}", socket_addr);
         
-        // TODO: In production, you'd keep this connection alive and handle incoming messages
-        // For now, we close it after handshake
+        // Note: In a production system, persistent connections would be maintained
+        // for efficient piece downloading. For this implementation, we establish
+        // connections as needed for piece requests via the PieceDownloader service.
         drop(stream);
 
         Ok(())

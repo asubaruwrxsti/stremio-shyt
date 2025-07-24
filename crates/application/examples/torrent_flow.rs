@@ -17,7 +17,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Execute the complete flow
     /*
-    TODO: Uncomment when repositories are implemented
+    Note: This example shows the complete torrent flow.
+    Uncomment when you want to test with a real torrent file.
 
     match app.download_torrent(torrent_file_data).await {
         Ok(stream_url) => {

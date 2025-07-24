@@ -10,10 +10,22 @@ services:
       - "8080:8080"
     volumes:
       - ../data:/app/data
-      - ../migrations:/app/migrations
+      - ../downloads:/app/downloads
+    env_file:
+      - ../.env.docker
     environment:
       - RUST_LOG=info
       - DATABASE_PATH=/app/data/stremio.db
+      - API_HOST=0.0.0.0
+      - API_PORT=8080
+      - DOWNLOAD_DIR=/app/downloads
+      - MAX_PEERS=50
+      - PIECE_TIMEOUT_SECONDS=30
+      - CONNECTION_TIMEOUT_SECONDS=10
+      - STREAMING_BUFFER_SIZE_MB=64
+      - MAX_CONCURRENT_STREAMS=10
+      - STREAM_CHUNK_SIZE_KB=256
+      - CONTENT_API_URL=https://api.themoviedb.org/3
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

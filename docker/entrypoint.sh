@@ -3,22 +3,20 @@ set -e
 
 echo "🚀 Starting Stremio BitTorrent API..."
 
-# Check if migrations directory exists
-if [ -d "/app/migrations" ]; then
-    echo "📦 Running database migrations..."
-    
-    # Set database URL for diesel
-    export DATABASE_URL="sqlite://${DATABASE_PATH}"
-    
-    # Run migrations
-    diesel migration run --migration-dir /app/migrations
-    
-    echo "✅ Database migrations completed successfully"
-else
-    echo "⚠️  No migrations directory found, skipping migrations"
+# Ensure directories exist
+mkdir -p "$(dirname "$DATABASE_PATH")"
+mkdir -p "$DOWNLOAD_DIR"
+
+# Check if database exists, if not create it
+if [ ! -f "$DATABASE_PATH" ]; then
+    echo "📦 Creating new database at $DATABASE_PATH"
+    touch "$DATABASE_PATH"
 fi
 
 echo "🎯 Starting API server..."
+echo "🌐 API will be available at: http://${API_HOST}:${API_PORT}"
+echo "📁 Download directory: $DOWNLOAD_DIR"
+echo "🗄️  Database: $DATABASE_PATH"
 
 # Start the application
 exec ./api-server

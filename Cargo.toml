@@ -18,10 +18,7 @@ edition = "2021"
 [dependencies]
 application = { path = "crates/application" }
 tokio = { version = "1.0", features = ["full"] }
-
-[[bin]]
-name = "real_torrent_test"
-path = "real_torrent_test.rs"
+dotenv = "0.15"
 
 [profile.release]
 opt-level = 3

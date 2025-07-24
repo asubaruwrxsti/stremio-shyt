@@ -17,6 +17,8 @@ hex = "0.4"
 percent-encoding = "2.3"
 rand = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.0", features = ["v4"] }
+futures = "0.3"
 
 [lib]
 path = "src/lib.rs"

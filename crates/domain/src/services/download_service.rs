@@ -175,8 +175,8 @@ impl DownloadService {
     }
 
     /// Prepare torrent for streaming (prioritize first pieces)
-    /// This supports: launch mpv or expose via HTTP
-    pub async fn prepare_for_streaming(&self, torrent_id: i32) -> Result<String, DomainError> {
+    /// Returns whether the torrent is ready for streaming
+    pub async fn prepare_for_streaming(&self, torrent_id: i32) -> Result<bool, DomainError> {
         let torrent = self
             .torrent_repository
             .find_by_id(torrent_id)
@@ -187,34 +187,21 @@ impl DownloadService {
         let downloaded_pieces = self.piece_repository.count_downloaded(torrent_id).await?;
         let min_pieces_for_streaming = (torrent.piece_count as f32 * 0.05).max(10.0) as i32; // Need at least 5% or 10 pieces
 
-        if downloaded_pieces < min_pieces_for_streaming {
+        let ready_for_streaming = downloaded_pieces >= min_pieces_for_streaming;
+
+        if ready_for_streaming {
+            println!("🎬 Torrent '{}' is ready for streaming", torrent.name);
+            println!("✅ Downloaded {} pieces (minimum: {})", downloaded_pieces, min_pieces_for_streaming);
+        } else {
             println!(
-                "⚠️  Need {} pieces for streaming, only have {}",
-                min_pieces_for_streaming, downloaded_pieces
+                "⚠️  Torrent '{}' needs {} more pieces for streaming (have {}, need {})",
+                torrent.name,
+                min_pieces_for_streaming - downloaded_pieces,
+                downloaded_pieces,
+                min_pieces_for_streaming
             );
         }
 
-        // Create streaming URL - in production this would start an HTTP server
-        let stream_url = if let Some(file_path) = &torrent.file_path {
-            // File-based streaming
-            format!(
-                "http://localhost:8080/stream/file/{}",
-                file_path.replace('/', "_").replace('\\', "_")
-            )
-        } else {
-            // Memory-based streaming
-            format!("http://localhost:8080/stream/{}", torrent.info_hash)
-        };
-
-        // TODO: In production, you would:
-        // 1. Start an HTTP server on port 8080 if not already running
-        // 2. Register this torrent/file for serving
-        // 3. Handle range requests for video seeking
-        // 4. Implement bandwidth throttling
-
-        println!("🎬 Streaming prepared for torrent: {}", torrent.name);
-        println!("📺 Stream URL: {}", stream_url);
-
-        Ok(stream_url)
+        Ok(ready_for_streaming)
     }
 }

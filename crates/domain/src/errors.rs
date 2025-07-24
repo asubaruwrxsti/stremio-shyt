@@ -34,4 +34,10 @@ pub enum DomainError {
 
     #[error("Parsing error: {0}")]
     ParsingError(String),
+
+    #[error("Not found: {0}")]
+    NotFound(String),
+
+    #[error("Parse error: {0}")]
+    ParseError(String),
 }

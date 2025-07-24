@@ -8,6 +8,9 @@ WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY crates/ crates/
 
+# Remove the conflicting package section and dependencies from root Cargo.toml for workspace build
+RUN sed -i '/^\[package\]/,/^$/d; /^\[dependencies\]/,/^$/d' Cargo.toml
+
 # Install diesel CLI
 RUN cargo install diesel_cli --no-default-features --features sqlite
 
@@ -43,8 +46,8 @@ COPY docker/entrypoint.sh /app/entrypoint.sh
 # Make entrypoint executable
 RUN chmod +x /app/entrypoint.sh
 
-# Create directory for database and set ownership
-RUN mkdir -p /app/data && chown -R stremio:stremio /app
+# Create directories for database and downloads and set ownership
+RUN mkdir -p /app/data /app/downloads && chown -R stremio:stremio /app
 
 # Switch to non-root user
 USER stremio
@@ -52,9 +55,12 @@ USER stremio
 # Expose the port the app runs on
 EXPOSE 8080
 
-# Set environment variables
+# Set environment variables with defaults
 ENV RUST_LOG=info
 ENV DATABASE_PATH=/app/data/stremio.db
+ENV API_HOST=0.0.0.0
+ENV API_PORT=8080
+ENV DOWNLOAD_DIR=/app/downloads
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
