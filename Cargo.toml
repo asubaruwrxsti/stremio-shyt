@@ -1,12 +1,27 @@
 [workspace]
 members = [
     "crates/api-server",
-    "crates/database",
+    "crates/domain",
+    "crates/infrastructure", 
+    "crates/application",
     "crates/frontend",
     "crates/common",
     "crates/config",
 ]
 resolver = "2"
+
+[package]
+name = "stremio-shyt"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+application = { path = "crates/application" }
+tokio = { version = "1.0", features = ["full"] }
+
+[[bin]]
+name = "real_torrent_test"
+path = "real_torrent_test.rs"
 
 [profile.release]
 opt-level = 3

@@ -1,0 +1,22 @@
+[package]
+name = "domain"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Core dependencies for domain logic
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"
+async-trait = "0.1"
+sha1 = "0.10"
+tokio = { version = "1.0", features = ["fs", "net", "io-util", "time"] }
+bip_metainfo = "0.12"
+reqwest = "0.11"
+url = "2.4"
+hex = "0.4"
+percent-encoding = "2.3"
+rand = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+
+[lib]
+path = "src/lib.rs"

@@ -1,0 +1,12 @@
+[package]
+name = "application"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+domain = { path = "../domain" }
+infrastructure = { path = "../infrastructure" }
+tokio = { version = "1.0", features = ["full"] }
+
+[lib]
+path = "src/lib.rs"
